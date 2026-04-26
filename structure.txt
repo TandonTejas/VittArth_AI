@@ -1,0 +1,120 @@
+├── finguard-ai
+│   ├── .pytest_cache
+│   │   ├── v
+│   │   │   ├── cache
+│   │   │   │   ├── lastfailed
+│   │   │   │   ├── nodeids
+│   │   ├── .gitignore
+│   │   ├── CACHEDIR.TAG
+│   │   ├── README.md
+│   ├── api
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── schemas.py
+│   │   ├── routes
+│   │   │   ├── __init__.py
+│   │   │   ├── dashboard.py
+│   │   │   ├── health.py
+│   │   │   ├── onboarding.py
+│   │   │   ├── planner.py
+│   │   │   ├── transaction.py
+│   │   ├── state
+│   │   │   ├── __init__.py
+│   │   │   ├── session_store.py
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── run.py
+│   ├── data
+│   │   ├── sample_transactions.csv
+│   ├── frontend
+│   │   ├── dist
+│   │   │   ├── assets
+│   │   │   │   ├── index-BIga3ES9.css
+│   │   │   │   ├── index-BXh9tm7Y.js
+│   │   │   ├── favicon.svg
+│   │   │   ├── icons.svg
+│   │   │   ├── index.html
+│   │   ├── playwright-report
+│   │   │   ├── index.html
+│   │   ├── public
+│   │   │   ├── favicon.svg
+│   │   │   ├── icons.svg
+│   │   ├── src
+│   │   │   ├── api
+│   │   │   │   ├── client.js
+│   │   │   ├── assets
+│   │   │   │   ├── hero.png
+│   │   │   │   ├── react.svg
+│   │   │   │   ├── vite.svg
+│   │   │   ├── components
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── CategoryPieChart.jsx
+│   │   │   │   │   ├── CategoryRegretTable.jsx
+│   │   │   │   │   ├── MetricCard.jsx
+│   │   │   │   │   ├── MovingAverageChart.jsx
+│   │   │   │   │   ├── SpendingBarChart.jsx
+│   │   │   │   ├── layout
+│   │   │   │   │   ├── RiskTierBanner.jsx
+│   │   │   │   │   ├── Sidebar.jsx
+│   │   │   │   ├── planner
+│   │   │   │   │   ├── BudgetDonutChart.jsx
+│   │   │   │   │   ├── CrisisChecklist.jsx
+│   │   │   │   ├── transaction
+│   │   │   │   │   ├── DecisionCard.jsx
+│   │   │   │   │   ├── SurvivalImpactChart.jsx
+│   │   │   │   │   ├── TransactionForm.jsx
+│   │   │   │   ├── ui
+│   │   │   │   │   ├── Badge.jsx
+│   │   │   │   │   ├── EmptyState.jsx
+│   │   │   │   │   ├── ErrorAlert.jsx
+│   │   │   │   │   ├── Spinner.jsx
+│   │   │   ├── context
+│   │   │   │   ├── SessionContext.jsx
+│   │   │   ├── pages
+│   │   │   │   ├── About.jsx
+│   │   │   │   ├── Dashboard.jsx
+│   │   │   │   ├── EmergencyPlanner.jsx
+│   │   │   │   ├── Onboarding.jsx
+│   │   │   │   ├── TransactionSimulator.jsx
+│   │   │   ├── App.css
+│   │   │   ├── App.jsx
+│   │   │   ├── index.css
+│   │   │   ├── main.jsx
+│   │   ├── test-results
+│   │   │   ├── .last-run.json
+│   │   ├── tests
+│   │   │   ├── e2e.spec.js
+│   │   ├── .gitignore
+│   │   ├── eslint.config.js
+│   │   ├── index.html
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── playwright.config.js
+│   │   ├── README.md
+│   │   ├── vite.config.js
+│   ├── models
+│   │   ├── .gitkeep
+│   │   ├── survival_model.pt
+│   ├── modules
+│   │   ├── __init__.py
+│   │   ├── csp_planner.py
+│   │   ├── decision_coach.py
+│   │   ├── ontology_engine.py
+│   │   ├── survival_engine.py
+│   ├── scripts
+│   │   ├── smoke_test.py
+│   │   ├── start_dev.sh
+│   ├── tests
+│   │   ├── __init__.py
+│   │   ├── test_api.py
+│   │   ├── test_csp.py
+│   │   ├── test_decision.py
+│   │   ├── test_integration.py
+│   │   ├── test_ontology.py
+│   │   ├── test_survival.py
+│   ├── .gitignore
+│   ├── app.py
+│   ├── README.md
+│   ├── requirements.txt
+├── gen_structure.ps1
+├── structure.txt

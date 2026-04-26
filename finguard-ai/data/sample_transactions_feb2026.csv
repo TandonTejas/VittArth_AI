@@ -1,0 +1,86 @@
+Date,Amount,Payee,TransactionType
+2026-02-01,55000,Salary Credit,Credit
+2026-02-01,12500,Rent Payment,Debit
+2026-02-01,149,Netflix,Debit
+2026-02-01,299,Swiggy,Debit
+2026-02-02,85,Chaayos,Debit
+2026-02-02,480,DMart,Debit
+2026-02-02,190,Ola,Debit
+2026-02-03,420,Zomato,Debit
+2026-02-03,130,Metro Recharge,Debit
+2026-02-03,2500,Amazon Shopping,Debit
+2026-02-04,349,BigBasket,Debit
+2026-02-04,99,YouTube Premium,Debit
+2026-02-04,220,Uber,Debit
+2026-02-05,560,Reliance Fresh,Debit
+2026-02-05,1200,Airtel Postpaid,Debit
+2026-02-05,399,Swiggy,Debit
+2026-02-06,75,Chai Point,Debit
+2026-02-06,850,Electricity Bill,Debit
+2026-02-06,180,Ola,Debit
+2026-02-07,3200,Zomato Late Night,Debit
+2026-02-07,199,Spotify,Debit
+2026-02-07,670,BigBasket,Debit
+2026-02-08,145,Uber,Debit
+2026-02-08,1800,Myntra,Debit
+2026-02-08,320,DMart,Debit
+2026-02-09,89,Chaayos,Debit
+2026-02-09,440,Swiggy,Debit
+2026-02-09,250,Metro Recharge,Debit
+2026-02-10,1500,BookMyShow,Debit
+2026-02-10,380,Zomato,Debit
+2026-02-10,160,Ola,Debit
+2026-02-11,520,Reliance Fresh,Debit
+2026-02-11,299,Amazon Prime,Debit
+2026-02-11,750,Cult.fit Subscription,Debit
+2026-02-12,90,Chai Point,Debit
+2026-02-12,490,BigBasket,Debit
+2026-02-12,2200,Zara,Debit
+2026-02-13,185,Uber,Debit
+2026-02-13,310,Swiggy,Debit
+2026-02-13,140,Metro Recharge,Debit
+2026-02-14,2800,Romantic Dinner,Debit
+2026-02-14,1200,Flower Bouquet,Debit
+2026-02-14,599,Netflix,Debit
+2026-02-15,430,DMart,Debit
+2026-02-15,170,Ola,Debit
+2026-02-15,380,Zomato,Debit
+2026-02-16,95,Chaayos,Debit
+2026-02-16,680,Reliance Fresh,Debit
+2026-02-16,1400,H&M,Debit
+2026-02-17,210,Uber,Debit
+2026-02-17,450,Swiggy,Debit
+2026-02-17,500,MedPlus Pharmacy,Debit
+2026-02-18,350,BigBasket,Debit
+2026-02-18,149,Spotify,Debit
+2026-02-18,2600,Zomato Late Night,Debit
+2026-02-19,175,Ola,Debit
+2026-02-19,720,DMart,Debit
+2026-02-19,320,Swiggy,Debit
+2026-02-20,80,Chai Point,Debit
+2026-02-20,900,Apollo Pharmacy,Debit
+2026-02-20,1100,Steam Gaming,Debit
+2026-02-21,280,Uber,Debit
+2026-02-21,550,BigBasket,Debit
+2026-02-21,199,Netflix,Debit
+2026-02-22,420,Zomato,Debit
+2026-02-22,160,Metro Recharge,Debit
+2026-02-22,3500,Myntra Sale,Debit
+2026-02-23,90,Chaayos,Debit
+2026-02-23,480,Reliance Fresh,Debit
+2026-02-23,200,Ola,Debit
+2026-02-24,370,Swiggy,Debit
+2026-02-24,850,Water & Gas Bill,Debit
+2026-02-24,1600,PVR Movies,Debit
+2026-02-25,620,DMart,Debit
+2026-02-25,149,Spotify,Debit
+2026-02-25,2900,Zomato Late Night,Debit
+2026-02-26,135,Uber,Debit
+2026-02-26,400,BigBasket,Debit
+2026-02-26,750,Westside,Debit
+2026-02-27,85,Chai Point,Debit
+2026-02-27,530,Reliance Fresh,Debit
+2026-02-27,180,Ola,Debit
+2026-02-28,460,Swiggy,Debit
+2026-02-28,199,Amazon Prime,Debit
+2026-02-28,1000,Emergency Medical,Debit

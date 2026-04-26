@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --color-risk-safe: var(--color-green-500);
+  --color-risk-medium: var(--color-amber-500);
+  --color-risk-high: var(--color-red-500);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; }
