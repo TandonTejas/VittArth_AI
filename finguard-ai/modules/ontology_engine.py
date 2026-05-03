@@ -26,7 +26,7 @@ except ImportError:  # pragma: no cover - local fallback when rapidfuzz is absen
 # ---------------------------------------------------------------------------
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ONTOLOGY_PATH = os.path.normpath(os.path.join(_HERE, "..", "..", "ontology_flags.json"))
+_ONTOLOGY_PATH = os.path.normpath(os.path.join(_HERE, "..", "ontology_flags.json"))
 _CATEGORY_MAPPING_PATH = os.path.normpath(os.path.join(_HERE, "..", "data", "category_mappings.json"))
 _MAPPING_LOCK = threading.Lock()
 
