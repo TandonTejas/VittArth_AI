@@ -52,11 +52,15 @@ app = FastAPI(title="VittArth AI API", version="1.0.0",
 
 # ── CORS (must be outermost — added last so it wraps everything) ──────────────
 
+_allowed_origins = [
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:3000", "http://127.0.0.1:3000",
+]
+if extra := os.getenv("ALLOWED_ORIGINS"):
+    _allowed_origins.extend([o.strip() for o in extra.split(",")])
+
 app.add_middleware(CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", "http://127.0.0.1:5173",
-        "http://localhost:3000", "http://127.0.0.1:3000",
-    ],
+    allow_origins=_allowed_origins,
     allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_credentials=True,
     allow_methods=["*"],
