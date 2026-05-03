@@ -1,0 +1,12 @@
+# Nixpacks configuration for multi-language support (Python + Node.js)
+[phases.setup]
+nixPkgs = ["python311", "nodejs_20"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt", "npm install --prefix frontend"]
+
+[phases.build]
+cmds = ["npm run build --prefix frontend"]
+
+[start]
+cmd = "uvicorn api.main:app --host 0.0.0.0 --port $PORT"
