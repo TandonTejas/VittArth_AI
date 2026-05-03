@@ -1,11 +1,11 @@
-# FinGuard AI — Comprehensive Technical Documentation
+# VittArth AI — Comprehensive Technical Documentation
 ## Part 1: Project Overview, Architecture & File Breakdown
 
 ---
 
 # 1. Project Overview
 
-**FinGuard AI** (internally branded **VittArth AI**) is a personal finance AI assistant built for the Indian market. Its core mission is to act as an **emotional interceptor** — it sits between you and your wallet and asks: *"Should you really spend this?"*
+**VittArth AI** is a personal finance AI assistant built for the Indian market. Its core mission is to act as an **emotional interceptor** — it sits between you and your wallet and asks: *"Should you really spend this?"*
 
 It is not a budgeting app. It is an **AI decision engine** that evaluates each proposed transaction through four different intelligent lenses before giving you a SPEND / PAUSE / AVOID verdict with a behavioral explanation.
 
@@ -171,7 +171,7 @@ Empty init file that makes `api/` a Python package, enabling `from api.routes im
 
 **Purpose:** Provides an in-memory, thread-safe session store. This replaces a real database.
 
-**Why in-memory?** FinGuard AI was designed as a stateless, per-session tool. There is no user account system. Each onboarding creates a fresh UUID session that lives for 2 hours.
+**Why in-memory?** VittArth AI was designed as a stateless, per-session tool. There is no user account system. Each onboarding creates a fresh UUID session that lives for 2 hours.
 
 **Class: `SessionStore`**
 - `sessions: dict[str, dict]` — maps UUID → session data dict
@@ -310,7 +310,7 @@ Returns all known ontology categories as a flat list with labels, parents, keys.
 - `_parse_payee()` — extracts merchant name from "at/to" patterns, UPI VPA, POS descriptors; cleans noise tokens.
 - `_parse_date()` — tries ISO, DD/MM/YYYY, and D-Mon-YYYY formats.
 - `_parse_hour()` — extracts HH:MM AM/PM time.
-# FinGuard AI — Comprehensive Technical Documentation
+# VittArth AI — Comprehensive Technical Documentation
 ## Part 2: AI/ML Modules Deep Dive
 
 ---
@@ -319,7 +319,7 @@ Returns all known ontology categories as a flat list with labels, parents, keys.
 
 ## 5.1 What is an Ontology?
 
-An ontology is a **structured knowledge graph** — a hierarchy of concepts and their relationships. In FinGuard AI, the ontology defines the universe of all spending categories and what makes each one distinct.
+An ontology is a **structured knowledge graph** — a hierarchy of concepts and their relationships. In VittArth AI, the ontology defines the universe of all spending categories and what makes each one distinct.
 
 **Simple explanation:** Imagine a giant decision tree that says: *"If the vendor name contains 'Swiggy', it belongs to food_and_dining:food_delivery. That category has a regret probability of 0.72, necessity score of 0.30, and an impulse flag."*
 
@@ -686,7 +686,7 @@ If `available_daily_budget < ₹80` (can't afford the food minimum), the CSP can
 4. Explore emergency gig work (Swiggy delivery, Dunzo).
 5. Contact bank about overdraft/personal loan.
 6. Check government schemes (PM-JAY, PMGKAY).
-# FinGuard AI — Comprehensive Technical Documentation
+# VittArth AI — Comprehensive Technical Documentation
 ## Part 3: Frontend, Data Flow & Execution Lifecycle
 
 ---
@@ -992,7 +992,7 @@ api/routes/transaction.py: evaluate()
     │
     ├── evaluate_transaction(balance, 450, daily_target, ont, surv, overrides, days, 22)
     │     ├── apply_override_softening("food_and_dining:food_delivery", {}, 0.86) → 0.86
-    │     ├── FinGuardCoach.reset()
+    │     ├── VittArthCoach.reset()
     │     ├── coach.declare(FinancialState(balance, daily_target, ...))
     │     ├── coach.declare(TransactionFact(amount=450, survival_after=7.1, late_night=True, ...))
     │     ├── coach.declare(OntologyResult(necessity=0.30, flags=[...]))

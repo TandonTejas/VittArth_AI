@@ -140,7 +140,7 @@ class DecisionResult:
 # Rule engine
 # ══════════════════════════════════════════════════════════════════════════════
 
-class FinGuardCoach(KnowledgeEngine):
+class VittArthCoach(KnowledgeEngine):
     """Nine salience-ordered rules that evaluate a proposed transaction."""
 
     # Rule 1 — Insufficient funds
@@ -569,7 +569,7 @@ def evaluate_transaction(
     late_night  = bool(late_night_flag) if late_night_flag is not None else (hour >= 22 or hour < 4)
 
     # Instantiate and run engine
-    coach = FinGuardCoach()
+    coach = VittArthCoach()
     coach.reset()
     coach.declare(FinancialState(
         balance=balance,

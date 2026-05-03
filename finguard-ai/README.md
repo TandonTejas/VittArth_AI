@@ -1,6 +1,6 @@
 # VittArth AI
 
-An intelligent personal finance guardian powered by ontology-based reasoning, expert systems, PyTorch survival analysis, and constraint satisfaction planning — with a full-stack FastAPI + React frontend.
+An intelligent personal finance guardian powered by ontology-based reasoning, expert systems, and PyTorch survival analysis — with a full-stack FastAPI + React frontend.
 
 ---
 
@@ -8,11 +8,9 @@ An intelligent personal finance guardian powered by ontology-based reasoning, ex
 
 | Layer | Technology |
 |---|---|
-| AI Modules | Python (JSON-backed ontology, custom rule engine, PyTorch, python-constraint) |
+| AI Modules | Python (JSON-backed ontology, custom rule engine, PyTorch) |
 | Backend API | FastAPI + Uvicorn |
-| Frontend | React 18 + Vite + Recharts + Tailwind CSS |
-| Unit Tests | pytest + FastAPI TestClient (70 tests) |
-| E2E Tests | Playwright (5 tests, Chromium) |
+| Frontend | React 19 + Vite + Recharts + Tailwind CSS |
 
 ---
 
@@ -22,8 +20,7 @@ An intelligent personal finance guardian powered by ontology-based reasoning, ex
 |---|---|---|
 | `ontology_engine.py` | JSON Ontology + Bayesian Priors | Classifies vendor/payee into financial categories with regret probability |
 | `decision_coach.py` | Custom forward-chaining rules | Rule-based expert system that issues SPEND / PAUSE / AVOID decisions |
-| `survival_engine.py` | PyTorch MLP + Synthetic Data | Predicts financial survival days (cash-flow runway) |
-| `csp_planner.py` | python-constraint CSP solver | Generates an optimal emergency daily budget given hard constraints |
+| `survival_engine.py` | PyTorch MLP | Predicts financial survival days (cash-flow runway) |
 
 ---
 
@@ -32,8 +29,8 @@ An intelligent personal finance guardian powered by ontology-based reasoning, ex
 ### 1. Clone the repository
 
 ```bash
-git clone <repo-url>
-cd finguard-ai
+git clone https://github.com/TandonTejas/VittArth_AI.git
+cd VittArth_AI
 ```
 
 ### 2. Backend — Python environment
@@ -56,14 +53,6 @@ npm install
 cd ..
 ```
 
-### 4. Install Playwright browsers
-
-```bash
-cd frontend
-npx playwright install chromium
-cd ..
-```
-
 ---
 
 ## ▶️ Running the Application
@@ -72,7 +61,7 @@ Open **two terminals**:
 
 **Terminal 1 — Backend:**
 ```bash
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+python api/run.py
 ```
 
 **Terminal 2 — Frontend:**
@@ -85,32 +74,16 @@ Then open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🧪 Running Tests
-
-### Backend unit + integration tests (70 tests)
-```bash
-pytest tests -q
-```
-
-### Playwright E2E tests (5 tests — requires both servers running via Playwright webServer)
-```bash
-cd frontend
-npx playwright test tests/e2e.spec.js
-```
-
----
-
 ## 📁 Project Structure
 
 ```
-finguard-ai/
+VittArth_AI/
 ├── api/                        # FastAPI backend
 │   ├── main.py                 # App entry point, CORS, middleware
 │   ├── routes/
 │   │   ├── onboarding.py       # POST /api/onboard, POST /api/upload-csv
 │   │   ├── dashboard.py        # GET  /api/dashboard
 │   │   ├── transaction.py      # POST /api/evaluate, POST /api/confirm
-│   │   ├── planner.py          # GET  /api/emergency-budget
 │   │   └── health.py           # GET  /api/health
 │   ├── models/schemas.py       # Pydantic request/response models
 │   └── state/session_store.py  # In-memory session store (asyncio.Lock)
@@ -118,25 +91,17 @@ finguard-ai/
 ├── modules/                    # Core AI modules
 │   ├── ontology_engine.py      # Vendor classification + regret scoring
 │   ├── decision_coach.py       # Custom rule engine → SPEND/PAUSE/AVOID
-│   ├── survival_engine.py      # PyTorch cash-flow survival predictor
-│   └── csp_planner.py          # CSP emergency budget solver
+│   └── survival_engine.py      # PyTorch cash-flow survival predictor
 │
 ├── frontend/                   # React + Vite frontend
 │   ├── src/
 │   │   ├── api/client.js       # Axios + fetch API client
 │   │   ├── context/            # SessionContext (global state)
-│   │   ├── pages/              # Onboarding, Dashboard, TransactionSimulator,
-│   │   │                       # EmergencyPlanner, About
+│   │   ├── pages/              # Onboarding, Dashboard, TransactionSimulator, About
 │   │   └── components/         # MetricCard, DecisionCard, Charts, Sidebar…
-│   ├── tests/e2e.spec.js       # Playwright E2E suite
-│   └── playwright.config.js
-│
-├── tests/
-│   ├── test_api.py             # FastAPI integration tests
-│   └── test_survival.py        # PyTorch model unit tests
 │
 ├── data/
-│   └── sample_transactions.csv # Sample bank statement for testing
+│   └── category_mappings.json  # Learned user category overrides
 └── requirements.txt
 ```
 
@@ -147,4 +112,3 @@ finguard-ai/
 - Python 3.10+
 - Node.js 18+
 - See `requirements.txt` and `frontend/package.json` for full dependency lists
-

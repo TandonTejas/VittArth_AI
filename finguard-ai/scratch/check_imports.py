@@ -18,7 +18,7 @@ try:
     from modules.survival_engine import SurvivalEngine
     print("SurvivalEngine imported successfully.")
     
-    from modules.decision_coach import FinGuardCoach
+    from modules.decision_coach import VittArthCoach
     print("DecisionCoach imported successfully.")
     
     print("\nALL IMPORTS SUCCESSFUL. NO MISSING DEPENDENCIES.")

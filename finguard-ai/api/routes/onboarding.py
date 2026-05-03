@@ -8,7 +8,7 @@ from api.state.session_store import store
 from modules.ontology_engine import OntologyEngine
 from modules.survival_engine import SurvivalEngine, estimate_variable_daily_spend, variable_expense_statement
 
-log = logging.getLogger("finguard")
+log = logging.getLogger("vittarth")
 router = APIRouter()
 _REQUIRED_COLS = {"Date", "Amount", "Payee", "TransactionType"}
 _ALLOWED_EXTS  = {".csv", ".xlsx", ".xls"}

@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from api.routes import dashboard, health, onboarding, transaction
 from api.state.session_store import store
 
-log = logging.getLogger("finguard")
+log = logging.getLogger("vittarth")
 
 # ── Session expiry background task ────────────────────────────────────────────
 
