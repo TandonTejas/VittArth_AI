@@ -27,7 +27,7 @@ export default defineConfig({
     },
     {
       command: 'python ../api/run.py',
-      url: 'http://localhost:8000/api/health',
+      url: 'http://localhost:8001/api/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
     }

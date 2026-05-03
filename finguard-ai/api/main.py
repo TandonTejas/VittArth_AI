@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from api.routes import dashboard, health, onboarding, planner, transaction
+from api.routes import dashboard, health, onboarding, transaction
 from api.state.session_store import store
 
 log = logging.getLogger("finguard")
@@ -39,16 +39,29 @@ async def _expire_sessions():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logging.basicConfig(level=logging.INFO)
-    log.info("FinGuard AI API started")
+    log.info("VittArth AI API started")
     task = asyncio.create_task(_expire_sessions())
     yield
     task.cancel()
 
 # ── App ────────────────────────────────────────────────────────────────────────
 
-app = FastAPI(title="FinGuard AI API", version="1.0.0",
+app = FastAPI(title="VittArth AI API", version="1.0.0",
     description="Emotional Interceptor for personal finance decisions",
     lifespan=lifespan)
+
+# ── CORS (must be outermost — added last so it wraps everything) ──────────────
+
+app.add_middleware(CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:3000", "http://127.0.0.1:3000",
+    ],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── Security headers middleware ────────────────────────────────────────────────
 
@@ -58,13 +71,6 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"]        = "DENY"
     return response
-
-# ── CORS ───────────────────────────────────────────────────────────────────────
-
-app.add_middleware(CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173",
-                   "http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 # ── Global exception handler ───────────────────────────────────────────────────
 
@@ -80,7 +86,6 @@ app.include_router(health.router,      prefix="/api")
 app.include_router(onboarding.router,  prefix="/api")
 app.include_router(dashboard.router,   prefix="/api")
 app.include_router(transaction.router, prefix="/api")
-app.include_router(planner.router,     prefix="/api")
 
 # ── Serve built React frontend ─────────────────────────────────────────────────
 

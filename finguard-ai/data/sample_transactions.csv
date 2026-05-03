@@ -1,92 +1,87 @@
 Date,Amount,Payee,TransactionType
-2026-03-27,349,Zomato,Debit
-2026-03-27,199,Netflix,Debit
-2026-03-27,5000,Salary Credit,Credit
-2026-03-28,85,Swiggy,Debit
-2026-03-28,450,DMart,Debit
-2026-03-28,130,Ola,Debit
-2026-03-29,299,Myntra,Debit
-2026-03-29,560,BigBasket,Debit
-2026-03-29,750,Electricity Bill,Debit
-2026-03-30,149,Spotify,Debit
-2026-03-30,220,Starbucks,Debit
-2026-03-30,90,Metro Recharge,Debit
-2026-03-31,2499,H&M,Debit
-2026-03-31,320,Zomato,Debit
-2026-03-31,180,Uber,Debit
-2026-04-01,99,BookMyShow,Debit
-2026-04-01,670,Reliance Fresh,Debit
-2026-04-01,500,Freelance Payment,Credit
-2026-04-02,450,Swiggy,Debit
-2026-04-02,1200,Airtel Postpaid,Debit
-2026-04-02,75,Chaayos,Debit
-2026-04-03,850,Zara,Debit
-2026-04-03,240,Ola,Debit
-2026-04-03,390,Zomato,Debit
-2026-04-04,199,Netflix,Debit
-2026-04-04,320,DMart,Debit
-2026-04-04,100,Metro Recharge,Debit
-2026-04-05,3000,Myntra,Debit
-2026-04-05,220,Swiggy,Debit
-2026-04-05,1500,Cash Withdrawal,Debit
-2026-04-06,580,BigBasket,Debit
-2026-04-06,160,Uber,Debit
-2026-04-06,50,Local Chai Stall,Debit
-2026-04-07,499,BookMyShow,Debit
-2026-04-07,410,Zomato,Debit
-2026-04-07,2000,Rent Received,Credit
-2026-04-08,149,Spotify,Debit
-2026-04-08,990,Jio Recharge,Debit
-2026-04-08,280,Starbucks,Debit
-2026-04-09,1800,H&M,Debit
-2026-04-09,370,Swiggy,Debit
-2026-04-09,120,Ola,Debit
-2026-04-10,2200,Zara,Debit
-2026-04-10,480,Reliance Fresh,Debit
-2026-04-10,199,Netflix,Debit
-2026-04-11,550,Zomato,Debit
-2026-04-11,95,Chaayos,Debit
-2026-04-11,750,Electricity Bill,Debit
-2026-04-12,320,DMart,Debit
-2026-04-12,200,Uber,Debit
-2026-04-12,5000,Salary Bonus,Credit
-2026-04-13,430,Swiggy,Debit
-2026-04-13,1499,Myntra,Debit
-2026-04-13,80,Metro Recharge,Debit
-2026-04-14,299,BookMyShow,Debit
-2026-04-14,610,BigBasket,Debit
-2026-04-14,250,Starbucks,Debit
-2026-04-15,380,Zomato,Debit
-2026-04-15,149,Spotify,Debit
-2026-04-15,1200,Airtel Postpaid,Debit
-2026-04-16,900,Reliance Fresh,Debit
-2026-04-16,175,Ola,Debit
-2026-04-16,65,Local Restaurant,Debit
-2026-04-17,2800,H&M,Debit
-2026-04-17,460,Swiggy,Debit
-2026-04-17,199,Netflix,Debit
-2026-04-18,340,Zomato,Debit
-2026-04-18,990,Jio Recharge,Debit
-2026-04-18,110,Metro Recharge,Debit
-2026-04-19,1700,Zara,Debit
-2026-04-19,530,DMart,Debit
-2026-04-19,3000,Freelance Payment,Credit
-2026-04-20,280,Swiggy,Debit
-2026-04-20,240,Starbucks,Debit
-2026-04-20,500,BookMyShow,Debit
-2026-04-21,420,Zomato,Debit
-2026-04-21,149,Spotify,Debit
-2026-04-21,680,BigBasket,Debit
-2026-04-22,155,Uber,Debit
-2026-04-22,2500,Myntra,Debit
-2026-04-22,750,Electricity Bill,Debit
-2026-04-23,390,Swiggy,Debit
-2026-04-23,85,Chaayos,Debit
-2026-04-23,100,Metro Recharge,Debit
-2026-04-24,199,Netflix,Debit
-2026-04-24,470,Reliance Fresh,Debit
-2026-04-24,190,Ola,Debit
-2026-04-25,3000,Zomato Late Night,Debit
-2026-04-25,149,Spotify,Debit
-2026-04-25,1400,Airtel Postpaid,Debit
-2026-04-25,890,DMart,Debit
+27-03-2026,349,Zomato,Debit
+27-03-2026,199,Netflix,Debit
+28-03-2026,85,Swiggy,Debit
+28-03-2026,450,DMart,Debit
+28-03-2026,130,Ola,Debit
+29-03-2026,299,Myntra,Debit
+29-03-2026,560,BigBasket,Debit
+29-03-2026,750,Electricity Bill,Debit
+30-03-2026,149,Spotify,Debit
+30-03-2026,220,Starbucks,Debit
+30-03-2026,90,Metro Recharge,Debit
+31-03-2026,2499,H&M,Debit
+31-03-2026,320,Zomato,Debit
+31-03-2026,180,Uber,Debit
+01-04-2026,99,BookMyShow,Debit
+01-04-2026,670,Reliance Fresh,Debit
+02-04-2026,450,Swiggy,Debit
+02-04-2026,1200,Airtel Postpaid,Debit
+02-04-2026,75,Chaayos,Debit
+03-04-2026,850,Zara,Debit
+03-04-2026,240,Ola,Debit
+03-04-2026,390,Zomato,Debit
+04-04-2026,199,Netflix,Debit
+04-04-2026,320,DMart,Debit
+04-04-2026,100,Metro Recharge,Debit
+05-04-2026,3000,Myntra,Debit
+05-04-2026,220,Swiggy,Debit
+05-04-2026,1500,Cash Withdrawal,Debit
+06-04-2026,580,BigBasket,Debit
+06-04-2026,160,Uber,Debit
+06-04-2026,50,Local Chai Stall,Debit
+07-04-2026,499,BookMyShow,Debit
+07-04-2026,410,Zomato,Debit
+08-04-2026,149,Spotify,Debit
+08-04-2026,990,Jio Recharge,Debit
+08-04-2026,280,Starbucks,Debit
+09-04-2026,1800,H&M,Debit
+09-04-2026,370,Swiggy,Debit
+09-04-2026,120,Ola,Debit
+10-04-2026,2200,Zara,Debit
+10-04-2026,480,Reliance Fresh,Debit
+10-04-2026,199,Netflix,Debit
+11-04-2026,550,Zomato,Debit
+11-04-2026,95,Chaayos,Debit
+11-04-2026,750,Electricity Bill,Debit
+12-04-2026,320,DMart,Debit
+12-04-2026,200,Uber,Debit
+13-04-2026,430,Swiggy,Debit
+13-04-2026,1499,Myntra,Debit
+13-04-2026,80,Metro Recharge,Debit
+14-04-2026,299,BookMyShow,Debit
+14-04-2026,610,BigBasket,Debit
+14-04-2026,250,Starbucks,Debit
+15-04-2026,380,Zomato,Debit
+15-04-2026,149,Spotify,Debit
+15-04-2026,1200,Airtel Postpaid,Debit
+16-04-2026,900,Reliance Fresh,Debit
+16-04-2026,175,Ola,Debit
+16-04-2026,65,Local Restaurant,Debit
+17-04-2026,2800,H&M,Debit
+17-04-2026,460,Swiggy,Debit
+17-04-2026,199,Netflix,Debit
+18-04-2026,340,Zomato,Debit
+18-04-2026,990,Jio Recharge,Debit
+18-04-2026,110,Metro Recharge,Debit
+19-04-2026,1700,Zara,Debit
+19-04-2026,530,DMart,Debit
+20-04-2026,280,Swiggy,Debit
+20-04-2026,240,Starbucks,Debit
+20-04-2026,500,BookMyShow,Debit
+21-04-2026,420,Zomato,Debit
+21-04-2026,149,Spotify,Debit
+21-04-2026,680,BigBasket,Debit
+22-04-2026,155,Uber,Debit
+22-04-2026,2500,Myntra,Debit
+22-04-2026,750,Electricity Bill,Debit
+23-04-2026,390,Swiggy,Debit
+23-04-2026,85,Chaayos,Debit
+23-04-2026,100,Metro Recharge,Debit
+24-04-2026,199,Netflix,Debit
+24-04-2026,470,Reliance Fresh,Debit
+24-04-2026,190,Ola,Debit
+25-04-2026,3000,Zomato Late Night,Debit
+25-04-2026,149,Spotify,Debit
+25-04-2026,1400,Airtel Postpaid,Debit
+25-04-2026,890,DMart,Debit

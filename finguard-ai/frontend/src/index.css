@@ -1,10 +1,471 @@
 @import "tailwindcss";
 
-@theme {
-  --color-risk-safe: var(--color-green-500);
-  --color-risk-medium: var(--color-amber-500);
-  --color-risk-high: var(--color-red-500);
+/* ─── DESIGN TOKENS ───────────────────────────────────────────────────── */
+:root {
+  --fg-bg: #05061a;
+  --fg-surface: #0d0f2e;
+  --fg-blue: #0055ff;
+  --fg-electric: #00b4ff;
+  --fg-teal: #00e5c0;
+  --fg-white: #f0f4ff;
+  --fg-muted: #7b82b0;
+  --fg-border: rgba(0, 180, 255, 0.18);
+  --fg-card: rgba(13, 15, 46, 0.85);
+
+  --fg-safe: #00e5c0;
+  --fg-medium: #f59e0b;
+  --fg-danger: #ef4444;
+
+  --color-risk-safe: var(--fg-safe);
+  --color-risk-medium: var(--fg-medium);
+  --color-risk-high: var(--fg-danger);
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; font-family: 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; }
+/* ─── GLOBAL RESET ────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  background: var(--fg-bg);
+  color: var(--fg-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Syne', sans-serif;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ─── READING PROGRESS BAR ────────────────────────────────────────────── */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--fg-blue), var(--fg-electric), var(--fg-teal));
+  box-shadow: 0 0 8px var(--fg-electric);
+  z-index: 9999;
+  transition: width 0.1s linear;
+}
+
+/* ─── SCROLL-REVEAL ───────────────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── ORB BACKGROUNDS ─────────────────────────────────────────────────── */
+.orb-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+.orb-1 {
+  width: 600px;
+  height: 600px;
+  top: -100px;
+  left: -150px;
+  background: radial-gradient(circle, rgba(0, 85, 255, 0.22) 0%, transparent 65%);
+  animation: orbDrift1 14s ease-in-out infinite alternate;
+}
+
+.orb-2 {
+  width: 500px;
+  height: 500px;
+  bottom: -100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(0, 229, 192, 0.15) 0%, transparent 65%);
+  filter: blur(90px);
+  animation: orbDrift2 18s ease-in-out infinite alternate;
+}
+
+.orb-3 {
+  width: 350px;
+  height: 350px;
+  top: 40%;
+  left: 50%;
+  background: radial-gradient(circle, rgba(0, 180, 255, 0.1) 0%, transparent 65%);
+  filter: blur(70px);
+  animation: orbDrift3 22s ease-in-out infinite alternate;
+}
+
+@keyframes orbDrift1 {
+  0% {
+    transform: translate(0px, 0px);
+  }
+
+  100% {
+    transform: translate(70px, 60px);
+  }
+}
+
+@keyframes orbDrift2 {
+  0% {
+    transform: translate(0px, 0px);
+  }
+
+  100% {
+    transform: translate(-60px, -80px);
+  }
+}
+
+@keyframes orbDrift3 {
+  0% {
+    transform: translate(0px, 0px);
+  }
+
+  100% {
+    transform: translate(-50px, 40px);
+  }
+}
+
+/* ─── FLOATING FINANCE GRAPHICS ───────────────────────────────────────── */
+.float-graphic {
+  position: absolute;
+  pointer-events: none;
+  animation: floatGraphic 8s ease-in-out infinite;
+}
+
+@keyframes floatGraphic {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-18px) rotate(3deg);
+  }
+
+  66% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+}
+
+/* ─── GLASSMORPHISM CARD ──────────────────────────────────────────────── */
+.fg-card {
+  background: var(--fg-card);
+  border: 1px solid var(--fg-border);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ─── SECTION TAG PILL ────────────────────────────────────────────────── */
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(0, 229, 192, 0.3);
+  border-radius: 50px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-teal);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.section-tag .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg-teal);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ─── GRADIENT TEXT ───────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(120deg, var(--fg-electric), var(--fg-teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── PRIMARY BUTTON ──────────────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--fg-blue), var(--fg-electric));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 85, 255, 0.35);
+}
+
+/* ─── MARQUEE STRIP ───────────────────────────────────────────────────── */
+.marquee-strip {
+  height: 40px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, var(--fg-blue), var(--fg-electric), var(--fg-teal), var(--fg-blue));
+  background-size: 200% 100%;
+  animation: gradientShift 6s linear infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.marquee-track {
+  display: flex;
+  white-space: nowrap;
+  animation: marqueeScroll 22s linear infinite;
+}
+
+.marquee-content {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  padding-right: 48px;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ─── PULSE RING (for decision badge) ────────────────────────────────── */
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  animation: pulseRing 2s ease infinite;
+}
+
+/* ─── BOUNCING BALL INTRO ─────────────────────────────────────────────── */
+.ball-intro {
+  position: fixed;
+  inset: 0;
+  background: #05061a;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 8vw;
+  overflow: hidden;
+}
+
+.ball-intro.exit {
+  animation: introExit 0.6s ease-in forwards;
+}
+
+@keyframes introExit {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-100vh);
+  }
+}
+
+.ball-words {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 0.9;
+}
+
+.ball-word {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(10vw, 12vw, 16vw);
+  color: #fff;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  display: block;
+  will-change: transform;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ball-word.dip {
+  animation: wordDip 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+@keyframes wordDip {
+  0% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(14px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.ball {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--fg-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #fff;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+  will-change: transform;
+  box-shadow: 0 0 30px rgba(0, 85, 255, 0.6);
+  z-index: 2;
+}
+
+@keyframes ballSquash {
+  0% {
+    transform: scaleX(1) scaleY(1);
+  }
+
+  50% {
+    transform: scaleX(1.6) scaleY(0.5);
+  }
+
+  100% {
+    transform: scaleX(1) scaleY(1);
+  }
+}
+
+@keyframes ballStretch {
+  0% {
+    transform: scaleX(1) scaleY(1);
+  }
+
+  50% {
+    transform: scaleX(0.7) scaleY(1.4);
+  }
+
+  100% {
+    transform: scaleX(1) scaleY(1);
+  }
+}
+
+/* ─── HIGH RISK PULSING BORDER ────────────────────────────────────────── */
+@keyframes highRiskPulse {
+
+  0%,
+  100% {
+    border-bottom-color: rgba(239, 68, 68, 0.5);
+  }
+
+  50% {
+    border-bottom-color: rgba(239, 68, 68, 1);
+  }
+}
+
+/* ─── SPIN ANIMATION (refresh button) ────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── SCROLLBAR STYLING ───────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--fg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 180, 255, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 180, 255, 0.5);
+}

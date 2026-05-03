@@ -6,7 +6,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from api.models.schemas import CSVUploadRequest, CSVUploadResponse, ModelTrainingInfo, OnboardRequest, OnboardResponse, ProfileResponse, UpdateProfileRequest
 from api.state.session_store import store
 from modules.ontology_engine import OntologyEngine
-from modules.survival_engine import SurvivalEngine
+from modules.survival_engine import SurvivalEngine, estimate_variable_daily_spend, variable_expense_statement
 
 log = logging.getLogger("finguard")
 router = APIRouter()
@@ -36,7 +36,10 @@ async def update_profile(req: UpdateProfileRequest):
     if req.monthly_income is not None: updates["monthly_income"] = req.monthly_income
     if req.fixed_expenses is not None: updates["fixed_expenses"] = req.fixed_expenses
     if req.daily_target is not None:   updates["daily_target"] = req.daily_target
-    if req.current_balance is not None:updates["balance"] = req.current_balance
+    income = updates.get("monthly_income", session.get("monthly_income", 0.0))
+    fixed = updates.get("fixed_expenses", session.get("fixed_expenses", 0.0))
+    if req.monthly_income is not None or req.fixed_expenses is not None or req.current_balance is not None:
+        updates["balance"] = max(0.0, float(income) - float(fixed))
     
     if updates:
         await store.update_session(req.session_id, **updates)
@@ -72,22 +75,34 @@ async def upload_csv(req: CSVUploadRequest):
     if (df["Amount"] > 0).sum() == 0:
         log.warning("upload_csv: CSV has 0 usable rows — sparse mode")
     # Ontology
-    oe    = OntologyEngine()
+    oe = OntologyEngine(
+        monthly_income=session.get("monthly_income", 50000),
+        daily_target_spend=session.get("daily_target")
+    )
     stats = oe.load_transactions(df)
+    variable_df = variable_expense_statement(df)
+    debit_count = int(df["TransactionType"].astype(str).str.lower().eq("debit").sum()) if "TransactionType" in df.columns else int(len(df))
+    fixed_count = max(0, debit_count - int(len(variable_df)))
+    variable_daily_spend = estimate_variable_daily_spend(variable_df, fallback=session.get("daily_target", 0.0))
     # Survival training
     se = SurvivalEngine()
     metrics: dict = {}
     try:
-        metrics = se.train(df, session["balance"], session["fixed_expenses"])
+        metrics = se.train(variable_df, session["balance"], 0.0)
     except Exception as e:
         log.warning("SurvivalEngine training failed: %s", e)
         metrics = {"error": str(e)}
     await store.update_session(session_id, ontology_engine=oe, survival_engine=se,
-        transactions_df=df, is_trained=se.is_trained, ontology_stats=stats)
+        transactions_df=df, variable_transactions_df=variable_df,
+        variable_daily_spend_rate=variable_daily_spend,
+        is_trained=se.is_trained, ontology_stats=stats)
     return CSVUploadResponse(
         session_id=session_id, total_transactions=stats["total_transactions"],
         top_category=stats.get("top_category"), data_quality=stats["data_quality"],
-        avg_daily_spend=stats["avg_daily_spend"], categories_found=stats["categories"],
+        avg_daily_spend=variable_daily_spend,
+        variable_expense_transactions=int(len(variable_df)),
+        fixed_expense_transactions=fixed_count,
+        categories_found=stats["categories"],
         model_training=ModelTrainingInfo(**{k: metrics.get(k) for k in ModelTrainingInfo.model_fields}))
 
 def _read_csv(raw: bytes) -> "pd.DataFrame":

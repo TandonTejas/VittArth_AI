@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe.serial('FinGuard AI End-to-End', () => {
+test.describe.serial('VittArth AI End-to-End', () => {
   let page;
 
   test.beforeAll(async ({ browser }) => {

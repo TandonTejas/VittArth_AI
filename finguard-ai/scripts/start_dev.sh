@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Starting FinGuard AI..."
+echo "Starting VittArth AI..."
 cd "$(dirname "$0")/.."
 python api/run.py &
 BACKEND_PID=$!

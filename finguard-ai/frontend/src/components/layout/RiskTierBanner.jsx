@@ -6,27 +6,50 @@ export default function RiskTierBanner() {
   const navigate = useNavigate()
 
   const configs = {
-    Safe:          { bg: '#14532d', text: '#bbf7d0', msg: `You're on track — ${survivalDays.toFixed(1)} survival days remaining` },
-    'Medium Risk': { bg: '#78350f', text: '#fde68a', msg: `Watch your spending — ${survivalDays.toFixed(1)} days remaining` },
-    'High Risk':   { bg: '#7f1d1d', text: '#fecaca', msg: `Emergency mode — ${survivalDays.toFixed(1)} days remaining`, action: true },
+    Safe: {
+      bg: 'rgba(0,229,192,0.1)',
+      border: '1px solid rgba(0,229,192,0.3)',
+      text: '#00e5c0',
+      dot: '#00e5c0',
+      msg: `You're on track — ${survivalDays.toFixed(1)} survival days remaining`,
+      icon: '🛡️',
+    },
+    'Medium Risk': {
+      bg: 'rgba(245,158,11,0.1)',
+      border: '1px solid rgba(245,158,11,0.3)',
+      text: '#f59e0b',
+      dot: '#f59e0b',
+      msg: `Watch your spending — ${survivalDays.toFixed(1)} days remaining`,
+      icon: '⚠️',
+    },
+    'High Risk': {
+      bg: 'rgba(239,68,68,0.12)',
+      border: '1px solid rgba(239,68,68,0.4)',
+      text: '#ef4444',
+      dot: '#ef4444',
+      msg: `Emergency mode — ${survivalDays.toFixed(1)} days remaining`,
+      icon: '🚨',
+    },
   }
   const c = configs[riskTier] || configs.Safe
 
   return (
     <div style={{
-      background: c.bg, color: c.text,
-      padding: '8px 24px', fontSize: 13, fontWeight: 500,
-      display: 'flex', alignItems: 'center', gap: 12
+      background: c.bg,
+      borderBottom: c.border,
+      color: c.text,
+      padding: '8px 24px',
+      fontSize: 13,
+      fontFamily: "'DM Sans', sans-serif",
+      fontWeight: 500,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      position: 'relative',
+      zIndex: 10,
     }}>
-      <span>{c.msg}</span>
-      {c.action && (
-        <button onClick={() => navigate('/emergency')} style={{
-          background: 'rgba(255,255,255,.15)', border: 'none', borderRadius: 6,
-          color: c.text, padding: '2px 10px', cursor: 'pointer', fontSize: 12
-        }}>
-          View Emergency Planner →
-        </button>
-      )}
+      <span>{c.icon}</span>
+      <span style={{ flex: 1 }}>{c.msg}</span>
     </div>
   )
 }

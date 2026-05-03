@@ -1,0 +1,17 @@
+Date,Amount,Payee,TransactionType
+2026-05-03,2000,Amazon India,Debit
+2026-05-02,1500,Zomato,Debit
+2026-05-01,600,Petrol Pump,Debit
+2026-04-30,1200,Reliance Digital,Debit
+2026-04-29,400,Starbucks,Debit
+2026-04-28,800,Uber India,Debit
+2026-04-27,500,Local Grocery,Debit
+2026-04-26,1800,PVR Cinemas,Debit
+2026-04-25,2200,H&M Store,Debit
+2026-04-24,300,Blinkit,Debit
+2026-04-23,700,Swiggy,Debit
+2026-04-22,900,Shell Fuel,Debit
+2026-04-21,450,Costa Coffee,Debit
+2026-04-20,1100,BigBasket,Debit
+2026-04-15,15000,Rent Payment,Debit
+2026-04-01,60000,Salary Credit,Credit

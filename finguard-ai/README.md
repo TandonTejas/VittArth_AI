@@ -1,4 +1,4 @@
-# FinGuard AI
+# VittArth AI
 
 An intelligent personal finance guardian powered by ontology-based reasoning, expert systems, PyTorch survival analysis, and constraint satisfaction planning — with a full-stack FastAPI + React frontend.
 
@@ -8,10 +8,10 @@ An intelligent personal finance guardian powered by ontology-based reasoning, ex
 
 | Layer | Technology |
 |---|---|
-| AI Modules | Python (OWL Ontology, Experta Rete, PyTorch, python-constraint) |
+| AI Modules | Python (JSON-backed ontology, custom rule engine, PyTorch, python-constraint) |
 | Backend API | FastAPI + Uvicorn |
 | Frontend | React 18 + Vite + Recharts + Tailwind CSS |
-| Unit Tests | pytest + FastAPI TestClient (26 tests) |
+| Unit Tests | pytest + FastAPI TestClient (70 tests) |
 | E2E Tests | Playwright (5 tests, Chromium) |
 
 ---
@@ -20,8 +20,8 @@ An intelligent personal finance guardian powered by ontology-based reasoning, ex
 
 | Module | Algorithm | Description |
 |---|---|---|
-| `ontology_engine.py` | OWL Ontology + Bayesian Priors | Classifies vendor/payee into financial categories with regret probability |
-| `decision_coach.py` | Experta (Rete forward-chaining) | Rule-based expert system that issues SPEND / PAUSE / AVOID decisions |
+| `ontology_engine.py` | JSON Ontology + Bayesian Priors | Classifies vendor/payee into financial categories with regret probability |
+| `decision_coach.py` | Custom forward-chaining rules | Rule-based expert system that issues SPEND / PAUSE / AVOID decisions |
 | `survival_engine.py` | PyTorch MLP + Synthetic Data | Predicts financial survival days (cash-flow runway) |
 | `csp_planner.py` | python-constraint CSP solver | Generates an optimal emergency daily budget given hard constraints |
 
@@ -87,9 +87,9 @@ Then open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 🧪 Running Tests
 
-### Backend unit + integration tests (26 tests)
+### Backend unit + integration tests (70 tests)
 ```bash
-pytest tests/test_api.py -v
+pytest tests -q
 ```
 
 ### Playwright E2E tests (5 tests — requires both servers running via Playwright webServer)
@@ -117,7 +117,7 @@ finguard-ai/
 │
 ├── modules/                    # Core AI modules
 │   ├── ontology_engine.py      # Vendor classification + regret scoring
-│   ├── decision_coach.py       # Experta rule engine → SPEND/PAUSE/AVOID
+│   ├── decision_coach.py       # Custom rule engine → SPEND/PAUSE/AVOID
 │   ├── survival_engine.py      # PyTorch cash-flow survival predictor
 │   └── csp_planner.py          # CSP emergency budget solver
 │
@@ -132,7 +132,7 @@ finguard-ai/
 │   └── playwright.config.js
 │
 ├── tests/
-│   ├── test_api.py             # 26 FastAPI integration tests
+│   ├── test_api.py             # FastAPI integration tests
 │   └── test_survival.py        # PyTorch model unit tests
 │
 ├── data/
@@ -147,5 +147,4 @@ finguard-ai/
 - Python 3.10+
 - Node.js 18+
 - See `requirements.txt` and `frontend/package.json` for full dependency lists
-
 

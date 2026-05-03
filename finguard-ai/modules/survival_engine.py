@@ -1,7 +1,7 @@
 """
 modules/survival_engine.py
 --------------------------
-FinGuard AI — Cash Flow Survival Engine (PyTorch)
+VittArth AI — Cash Flow Survival Engine (PyTorch)
 
 Predicts how many days of financial runway remain, before and after a
 proposed transaction, using a trained neural regression model with
@@ -11,6 +11,8 @@ Monte Carlo dropout uncertainty estimation.
 from __future__ import annotations
 
 import os
+import pickle
+import re
 from datetime import datetime
 from typing import Optional
 
@@ -21,26 +23,77 @@ import torch.nn as nn
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-# ── Category encoding (stable int 0–11) ───────────────────────────────────────
+# ── Category encoding (stable top-level ontology index) ───────────────────────
+_TOP_CATEGORY_ORDER = [
+    "food_and_dining",
+    "transportation",
+    "housing_rent",
+    "healthcare",
+    "education",
+    "shopping_retail",
+    "entertainment",
+    "subscriptions",
+    "telecom",
+    "financial_services",
+    "travel",
+    "personal_care",
+    "social_gifting",
+    "transfers",
+    "business_freelance",
+    "pets",
+    "government_payments",
+    "childcare",
+    "agriculture",
+    "hidden_expenses",
+    "illegal_unusual",
+    "miscellaneous",
+]
+
 CATEGORY_ENCODING: dict[str, int] = {
-    "LateNightCraving":      0,
-    "EssentialGrocery":      1,
-    "RestaurantDining":      2,
-    "StreamingSubscription": 3,
-    "ImpulseEntertainment":  4,
-    "ImpulseClothing":       5,
-    "SocialPressure":        6,
-    "Travel":                7,
-    "HealthWellness":        8,
-    "Utilities":             9,
-    "Savings":               10,
-    "GenericPurchase":       11,
+    slug: idx for idx, slug in enumerate(_TOP_CATEGORY_ORDER)
 }
+
+_LEGACY_CATEGORY_ALIASES = {
+    "LateNightCraving": "food_and_dining:food_delivery",
+    "EssentialGrocery": "food_and_dining:groceries",
+    "RestaurantDining": "food_and_dining:restaurants_cafes",
+    "StreamingSubscription": "subscriptions:video_streaming",
+    "ImpulseEntertainment": "entertainment:movies",
+    "ImpulseClothing": "shopping_retail:clothing",
+    "SocialPressure": "social_gifting:gifts",
+    "Travel": "travel:holiday_packages",
+    "HealthWellness": "healthcare:fitness",
+    "Utilities": "housing_rent:electricity_bill",
+    "Savings": "financial_services:mutual_fund",
+    "MedicalEssential": "healthcare:pharmacy",
+    "GenericPurchase": "miscellaneous:uncategorized",
+    "Generic": "miscellaneous:uncategorized",
+}
+
+
+def _encode_category(category: str) -> int:
+    canonical = _LEGACY_CATEGORY_ALIASES.get(category, category or "")
+    top_slug = canonical.split(":", 1)[0]
+    return CATEGORY_ENCODING.get(top_slug, len(CATEGORY_ENCODING))
 
 _SURVIVAL_CAP = 90.0          # Maximum predicted runway days
 _MC_PASSES    = 20             # Monte Carlo dropout forward passes
 _WIDE_BAND_STD_THRESHOLD  = 3.0
 _WIDE_BAND_VOL_THRESHOLD  = 200.0   # ₹ std-dev  → force wide band
+_FIXED_EXPENSE_TOP_LEVELS = {"housing_rent", "subscriptions"}
+_FIXED_EXPENSE_CATEGORIES = {
+    "education:school_college_fees",
+    "financial_services:loan_emi",
+    "financial_services:insurance_premiums",
+    "telecom:postpaid_bill",
+    "government_payments:tax_payments",
+}
+_FIXED_EXPENSE_TERMS = re.compile(
+    r"\b(?:rent|emi|loan|mortgage|subscription|netflix|spotify|prime|"
+    r"insurance|premium|postpaid|electricity|water|gas|lpg|maintenance|"
+    r"school fee|college fee|tuition|tax)\b",
+    re.I,
+)
 
 
 # ── 1. Feature engineering ────────────────────────────────────────────────────
@@ -49,7 +102,7 @@ def prepare_features(
     balance: float,
     transaction_amount: float,
     transactions_df: pd.DataFrame,
-    category: str = "GenericPurchase",
+    category: str = "miscellaneous:uncategorized",
     hour: int = 12,
 ) -> np.ndarray:
     """
@@ -61,14 +114,14 @@ def prepare_features(
     [1] transaction_amount       – ₹
     [2] spending_volatility_7d   – std-dev of daily spend over last 7 days
     [3] day_of_month             – 1–31
-    [4] category_encoding        – stable int 0–11
+    [4] category_encoding        – stable ontology top-level int
     [5] time_of_day_encoding     – hour / 24
     """
     # Spending volatility over the last 7 calendar days
     volatility = _compute_7d_volatility(transactions_df)
 
     day_of_month = datetime.today().day
-    cat_enc      = CATEGORY_ENCODING.get(category, 11)
+    cat_enc      = _encode_category(category)
     tod_enc      = hour / 24.0
 
     return np.array(
@@ -82,12 +135,7 @@ def _compute_7d_volatility(df: pd.DataFrame) -> float:
     if df is None or df.empty:
         return 0.0
     try:
-        tmp = df.copy()
-        tmp["Date"]   = pd.to_datetime(tmp["Date"])
-        tmp["Amount"] = pd.to_numeric(tmp["Amount"], errors="coerce")
-        # Debit only
-        if "TransactionType" in tmp.columns:
-            tmp = tmp[tmp["TransactionType"].str.lower() == "debit"]
+        tmp = variable_expense_statement(df)
         cutoff = pd.Timestamp.today() - pd.Timedelta(days=7)
         recent = tmp[tmp["Date"] >= cutoff]
         if len(recent) < 2:
@@ -96,6 +144,51 @@ def _compute_7d_volatility(df: pd.DataFrame) -> float:
         return float(daily.std()) if len(daily) > 1 else 0.0
     except Exception:
         return 0.0
+
+
+def _parse_statement_dates(values) -> pd.Series:
+    raw = pd.Series(values).astype(str)
+    iso_mask = raw.str.match(r"^\d{4}[-/]\d{1,2}[-/]\d{1,2}$", na=False)
+    parsed = pd.Series(pd.NaT, index=raw.index, dtype="datetime64[ns]")
+    if iso_mask.any():
+        parsed.loc[iso_mask] = pd.to_datetime(raw.loc[iso_mask], errors="coerce", yearfirst=True)
+    non_iso = ~iso_mask
+    if non_iso.any():
+        parsed.loc[non_iso] = pd.to_datetime(raw.loc[non_iso], errors="coerce", dayfirst=True)
+    return parsed
+
+
+def _is_fixed_expense_row(row: pd.Series) -> bool:
+    category = str(row.get("category", "") or "").lower()
+    top = category.split(":", 1)[0]
+    if top in _FIXED_EXPENSE_TOP_LEVELS or category in _FIXED_EXPENSE_CATEGORIES:
+        return True
+    payee = str(row.get("Payee", "") or "")
+    return bool(_FIXED_EXPENSE_TERMS.search(payee))
+
+
+def variable_expense_statement(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Return debit rows that represent variable/other expenses only.
+
+    Fixed expenses are already supplied during onboarding and subtracted from
+    runway as fixed_remaining_this_month. Removing fixed-like rows here keeps
+    rent, EMI, utilities, and subscriptions from being counted a second time in
+    the daily spend rate learned from the bank statement.
+    """
+    if df is None or df.empty:
+        return pd.DataFrame(columns=["Date", "Amount", "Payee", "TransactionType"])
+
+    tmp = df.copy()
+    tmp["Date"] = _parse_statement_dates(tmp.get("Date"))
+    tmp["Amount"] = pd.to_numeric(tmp.get("Amount"), errors="coerce").fillna(0.0)
+    tmp = tmp[tmp["Date"].notna() & (tmp["Amount"] > 0)]
+    if "TransactionType" in tmp.columns:
+        tmp = tmp[tmp["TransactionType"].astype(str).str.lower().eq("debit")]
+    if tmp.empty:
+        return tmp
+    fixed_mask = tmp.apply(_is_fixed_expense_row, axis=1)
+    return tmp[~fixed_mask].copy()
 
 
 # ── 2. Synthetic data generation ───────────────────────────────────────────────
@@ -139,7 +232,7 @@ def generate_training_data(
         # Randomise feature extras
         s_volatility = abs(rng.normal(0, hist_daily_spend * 0.25))
         s_day        = rng.integers(1, 32)
-        s_cat        = rng.integers(0, 12)
+        s_cat        = rng.integers(0, len(CATEGORY_ENCODING) + 1)
         s_hour       = rng.uniform(0, 1)
 
         feats = np.array(
@@ -156,19 +249,30 @@ def generate_training_data(
 
 
 def _estimate_daily_spend(df: pd.DataFrame) -> float:
-    """Mean daily debit spend from the transactions DataFrame."""
+    """Mean daily variable debit spend from the transactions DataFrame."""
     if df is None or df.empty:
         return 500.0
     try:
-        tmp = df.copy()
-        tmp["Date"]   = pd.to_datetime(tmp["Date"])
-        tmp["Amount"] = pd.to_numeric(tmp["Amount"], errors="coerce")
-        if "TransactionType" in tmp.columns:
-            tmp = tmp[tmp["TransactionType"].str.lower() == "debit"]
+        tmp = variable_expense_statement(df)
         daily = tmp.groupby(tmp["Date"].dt.date)["Amount"].sum()
         return float(daily.mean()) if len(daily) > 0 else 500.0
     except Exception:
         return 500.0
+
+
+def estimate_variable_daily_spend(df: pd.DataFrame, fallback: float = 0.0) -> float:
+    """Public helper for API routes that need the same non-fixed spend rate."""
+    if df is None or df.empty:
+        return float(fallback)
+    try:
+        tmp = variable_expense_statement(df)
+        if tmp.empty:
+            return float(fallback)
+        date_range = (tmp["Date"].max() - tmp["Date"].min()).days + 1
+        total = float(tmp["Amount"].sum())
+        return round(total / max(date_range, 1), 2)
+    except Exception:
+        return float(fallback)
 
 
 # ── 3. PyTorch model ───────────────────────────────────────────────────────────
@@ -204,6 +308,8 @@ class SurvivalEngine:
         self.scaler:     Optional[StandardScaler] = None
         self.is_trained: bool                     = False
         self._n_training_points: int              = 0
+        self.fixed_monthly_expenses: float        = 0.0
+        self.training_daily_spend: float          = 500.0
 
     # ── train ──────────────────────────────────────────────────────────────────
 
@@ -222,6 +328,11 @@ class SurvivalEngine:
         -------
         dict : val_mse, val_mae, epochs_trained, data_points_used
         """
+        torch.manual_seed(42)
+        np.random.seed(42)
+        self.fixed_monthly_expenses = float(max(fixed_monthly_expenses, 0.0))
+        self.training_daily_spend = float(max(_estimate_daily_spend(transactions_df), 1.0))
+
         X, y = generate_training_data(transactions_df, balance, fixed_monthly_expenses)
 
         # Scale features
@@ -266,6 +377,15 @@ class SurvivalEngine:
         # Persist weights
         os.makedirs("models", exist_ok=True)
         torch.save(self.model.state_dict(), "models/survival_model.pt")
+        with open("models/survival_scaler.pkl", "wb") as f:
+            pickle.dump(
+                {
+                    "scaler": self.scaler,
+                    "fixed_monthly_expenses": self.fixed_monthly_expenses,
+                    "training_daily_spend": self.training_daily_spend,
+                },
+                f,
+            )
 
         return {
             "val_mse":          round(val_mse, 4),
@@ -281,7 +401,7 @@ class SurvivalEngine:
         balance: float,
         transaction_amount: float,
         transactions_df: pd.DataFrame,
-        category: str = "GenericPurchase",
+        category: str = "miscellaneous:uncategorized",
         hour: int = 12,
     ) -> dict:
         """
@@ -296,6 +416,7 @@ class SurvivalEngine:
             raise RuntimeError("Model not trained. Call train() first.")
 
         volatility = _compute_7d_volatility(transactions_df)
+        daily_rate = max(_estimate_daily_spend(transactions_df), 1.0)
 
         # Feature vectors
         f_before = prepare_features(balance, 0.0,               transactions_df, category, hour)
@@ -307,7 +428,8 @@ class SurvivalEngine:
         before_t = torch.from_numpy(before_scaled)
         after_t  = torch.from_numpy(after_scaled)
 
-        # Monte Carlo dropout: run with dropout active to estimate uncertainty
+        # Monte Carlo dropout: deterministic seed keeps repeated API calls stable.
+        torch.manual_seed(12345)
         self.model.train()   # enables dropout
         mc_before, mc_after = [], []
         with torch.no_grad():
@@ -316,11 +438,34 @@ class SurvivalEngine:
                 mc_after.append(float(self.model(after_t).item()))
         self.model.eval()
 
-        days_before = float(np.clip(np.mean(mc_before), 0.0, _SURVIVAL_CAP))
-        days_after  = float(np.clip(np.mean(mc_after),  0.0, _SURVIVAL_CAP))
+        model_before = float(np.clip(np.mean(mc_before), 0.0, _SURVIVAL_CAP))
+        model_after  = float(np.clip(np.mean(mc_after),  0.0, _SURVIVAL_CAP))
         mc_std      = float(np.std(mc_after))
 
+        math_before = predict_mathematical(
+            balance=balance,
+            daily_spend_rate=daily_rate,
+            transaction_amount=0.0,
+            fixed_remaining_this_month=self.fixed_monthly_expenses,
+        )
+        math_after = predict_mathematical(
+            balance=balance,
+            daily_spend_rate=daily_rate,
+            transaction_amount=transaction_amount,
+            fixed_remaining_this_month=self.fixed_monthly_expenses,
+        )
+
+        # The neural model contributes shape, but the cash-flow equation is the
+        # anchor. This prevents trained predictions from becoming non-monotonic.
+        days_before = float(np.clip((0.75 * math_before) + (0.25 * model_before), 0.0, _SURVIVAL_CAP))
+        days_after = float(np.clip((0.75 * math_after) + (0.25 * model_after), 0.0, _SURVIVAL_CAP))
+        days_after = min(days_after, days_before)
+
         delta = max(0.0, days_before - days_after)
+        if transaction_amount > 0 and delta == 0.0 and days_before > 0:
+            analytic_delta = max(0.0, math_before - math_after)
+            delta = min(days_before, analytic_delta)
+            days_after = max(0.0, days_before - delta)
 
         conf_low  = float(np.clip(days_after - mc_std, 0.0, _SURVIVAL_CAP))
         conf_high = float(np.clip(days_after + mc_std, 0.0, _SURVIVAL_CAP))
@@ -344,9 +489,19 @@ class SurvivalEngine:
         """Load saved weights. Returns True if successful, False if not found."""
         if not os.path.exists(path):
             return False
+        scaler_path = os.path.join(os.path.dirname(path), "survival_scaler.pkl")
+        if not os.path.exists(scaler_path):
+            return False
         self.model = SurvivalNet()
         self.model.load_state_dict(torch.load(path, map_location="cpu", weights_only=True))
         self.model.eval()
+        with open(scaler_path, "rb") as f:
+            payload = pickle.load(f)
+        self.scaler = payload.get("scaler")
+        self.fixed_monthly_expenses = float(payload.get("fixed_monthly_expenses", 0.0))
+        self.training_daily_spend = float(payload.get("training_daily_spend", 500.0))
+        if self.scaler is None:
+            return False
         self.is_trained = True
         return True
 

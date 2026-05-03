@@ -1,7 +1,7 @@
 """
 api/models/schemas.py
 ---------------------
-All Pydantic request and response models for FinGuard AI API.
+All Pydantic request and response models for VittArth AI API.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ class OnboardRequest(BaseModel):
     daily_target:         float = Field(..., gt=0,  description="Safe-to-spend per day (₹)")
     user_profile:         str   = Field(default="Standard", description="User profile label")
     current_balance:      float = Field(..., ge=0,  description="Current account balance (₹)")
-    days_until_month_end: int   = Field(..., ge=1,  description="Calendar days remaining in month")
+    days_until_month_end: int   = Field(..., ge=0,  description="Calendar days remaining in month")
 
     @field_validator("fixed_expenses")
     @classmethod
@@ -51,10 +51,22 @@ class TransactionRequest(BaseModel):
     hour:       int   = Field(default=12, ge=0, le=23)
 
 
+class BankMessageRequest(BaseModel):
+    session_id: str
+    message:    str = Field(..., min_length=10, max_length=3000)
+
+
 class ConfirmTransactionRequest(BaseModel):
     session_id:     str
     transaction_id: str
     action:         str = Field(..., pattern="^(proceed|cancel)$")
+
+
+class CategoryCorrectionRequest(BaseModel):
+    session_id:     str
+    transaction_id: str
+    vendor_name:    str = Field(default="", max_length=120)
+    category:       str = Field(..., min_length=3, max_length=120)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -84,6 +96,8 @@ class CSVUploadResponse(BaseModel):
     top_category:       Optional[str]
     data_quality:       str
     avg_daily_spend:    float
+    variable_expense_transactions: int = 0
+    fixed_expense_transactions:    int = 0
     categories_found:   list[str]
     model_training:     ModelTrainingInfo
 
@@ -133,6 +147,38 @@ class EvaluationResponse(BaseModel):
     category:           str
     regret_probability: float
     confidence_band:    str
+    forward_chain:      dict = Field(default_factory=dict)
+
+
+class CategoryOption(BaseModel):
+    key:              str
+    label:            str
+    category_name:    str
+    subcategory_name: str
+    parent:           str
+    is_root:          bool = False
+
+
+class CategoryCorrectionResponse(EvaluationResponse):
+    mapping_key: str
+    aliases:     list[str] = []
+    updated:     bool
+
+
+class ParsedBankMessage(BaseModel):
+    amount:      float
+    payee:       str
+    date:        str
+    hour:        int
+    raw_message: str
+
+
+class BankMessageIngestResponse(EvaluationResponse):
+    parsed:            ParsedBankMessage
+    status:            str
+    new_balance:       float
+    new_risk_tier:     str
+    new_survival_days: float
 
 
 class BudgetResponse(BaseModel):

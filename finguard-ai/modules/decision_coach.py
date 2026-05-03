@@ -1,7 +1,7 @@
 """
 modules/decision_coach.py
 --------------------------
-FinGuard AI — Decision Coach (Forward-Chaining Rule Engine)
+VittArth AI — Decision Coach (Forward-Chaining Rule Engine)
 
 Implements a Rete-inspired, salience-ordered rule engine that mirrors the
 experta/pyknow API while remaining compatible with Python 3.10+.
@@ -13,6 +13,15 @@ import collections
 import collections.abc
 from dataclasses import dataclass
 from typing import Optional
+
+try:
+    from modules.ontology_engine import canonical_category, category_label
+except Exception:  # pragma: no cover - keeps the rule engine importable alone
+    def canonical_category(category: Optional[str]) -> str:
+        return category or "miscellaneous:uncategorized"
+
+    def category_label(category: str) -> str:
+        return (category or "miscellaneous:uncategorized").split(":", 1)[-1].replace("_", " ").title()
 
 # ── Python 3.10+ patch: experta uses removed collections.* aliases ─────────────
 for _attr in ("Callable", "Mapping", "MutableMapping", "Sequence",
@@ -109,7 +118,7 @@ class TransactionFact(Fact):
 
 class OntologyResult(Fact):
     """category, regret_probability, necessity_score, impulse_flag,
-    foreign_flag"""
+    foreign_flag, flags, age_restricted"""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -124,6 +133,7 @@ class DecisionResult:
     opportunity_cost:  dict
     commitment_device: bool
     confidence:        str    # "high" | "medium" | "low"
+    forward_chain:     dict
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -142,13 +152,33 @@ class FinGuardCoach(KnowledgeEngine):
             self.decision = "AVOID"
             self.reason   = "Insufficient funds"
 
-    # Rule 1.5 — Medical Emergency (Always allow if funds exist)
+    # Rule 1.2 — Illegal / prohibited ontology flags
+    @Rule(salience=98)
+    def rule_prohibited_flags(self):
+        o = self._get(OntologyResult)
+        if not o:
+            return
+        flags = set(o.get("flags", []) or [])
+        if flags.intersection({"illegal", "illegal_in_most_states", "PMLA_trigger", "corruption"}):
+            self.decision = "AVOID"
+            self.reason = "Prohibited or legally risky spend category"
+
+    # Rule 1.5 — Essential category guard (allow if funds exist)
     @Rule(salience=95)
-    def rule_medical_essential(self):
+    def rule_essential_expense(self):
         t = self._get(TransactionFact)
-        if t and t.category == "MedicalEssential":
+        o = self._get(OntologyResult)
+        if not t or not o:
+            return
+        category = canonical_category(t.category)
+        if o.necessity_score >= 0.85 and o.regret_probability < 0.35:
             self.decision = "SPEND"
-            self.reason   = "Medical and health essentials are always approved"
+            if category.startswith("healthcare:"):
+                self.reason = "Health and medical essential"
+            elif category.startswith("housing_rent:"):
+                self.reason = "Housing or utility essential"
+            else:
+                self.reason = "Essential expense"
 
     # Rule 2 — Critical survival + high regret
     @Rule(salience=90)
@@ -170,9 +200,18 @@ class FinGuardCoach(KnowledgeEngine):
     @Rule(salience=80)
     def rule_late_night_craving(self):
         t = self._get(TransactionFact)
-        if t and t.survival_days_after < 7 and t.category == "LateNightCraving":
+        if not t:
+            return
+        category = canonical_category(t.category)
+        late_food = category in {
+            "food_and_dining:food_delivery",
+            "food_and_dining:sweets_snacks",
+            "food_and_dining:alcohol",
+            "entertainment:nightlife",
+        }
+        if t.survival_days_after < 7 and late_food and t.late_night_flag:
             self.decision = "PAUSE"
-            self.reason   = "Late-night craving with tight runway"
+            self.reason   = "Late-night discretionary spend with tight runway"
             self.commitment_device = True
 
     # Rule 5 — Exceeds daily target
@@ -200,6 +239,17 @@ class FinGuardCoach(KnowledgeEngine):
         if o and o.foreign_flag:
             self.decision = "PAUSE"
             self.reason   = "Foreign transaction detected"
+
+    # Rule 7.5 — Sensitive but not prohibited
+    @Rule(salience=58)
+    def rule_sensitive_category(self):
+        o = self._get(OntologyResult)
+        if not o:
+            return
+        flags = set(o.get("flags", []) or [])
+        if flags.intersection({"age_restricted", "sensitive_category", "speculative_asset", "regulatory_watch_india"}):
+            self.decision = "PAUSE"
+            self.reason = "Sensitive spend category"
 
     # Rule 8 — Healthy finances, low regret
     @Rule(salience=50)
@@ -234,7 +284,8 @@ def apply_override_softening(
     Reduce regret probability based on past user overrides (learning loop).
     Up to 3 × −10%; floor = 0.70 × original.
     """
-    n          = min(override_counts.get(category, 0), 3)
+    canonical = canonical_category(category)
+    n          = min(max(override_counts.get(category, 0), override_counts.get(canonical, 0)), 3)
     softened   = regret_probability * (0.90 ** n)
     floor_val  = regret_probability * 0.70
     return max(softened, floor_val)
@@ -287,18 +338,25 @@ def generate_nudge(
             "financial decision under stress."
         )
 
+    readable_category = category_label(category)
+    canonical = canonical_category(category)
     oc_str     = f"Equivalent to {opportunity_cost['meals']} and {opportunity_cost['work_hours']}."
     regret_pct = int(regret_probability * 100)
 
     if decision == "AVOID":
         return (
             f"This purchase reduces your runway by {survival_delta:.1f} day(s). "
-            f"You regret {category} purchases {regret_pct}% of the time. "
+            f"You regret {readable_category} purchases {regret_pct}% of the time. "
             f"{oc_str}"
         )
 
     if decision == "PAUSE":
-        if category == "LateNightCraving":
+        if canonical in {
+            "food_and_dining:food_delivery",
+            "food_and_dining:sweets_snacks",
+            "food_and_dining:alcohol",
+            "entertainment:nightlife",
+        }:
             msg = (
                 f"Late-night purchases in this category are regretted "
                 f"{regret_pct}% of the time."
@@ -314,11 +372,153 @@ def generate_nudge(
         else:
             msg = (
                 f"Take a moment to reflect. "
-                f"This category carries a {regret_pct}% regret rate."
+                f"{readable_category} carries a {regret_pct}% regret rate."
             )
         return f"{msg} {oc_str}"
 
     return f"You're on track. Enjoy this purchase. {oc_str}"
+
+
+def _build_forward_chain(
+    *,
+    balance: float,
+    amount: float,
+    daily_target: float,
+    category: str,
+    regret_probability: float,
+    necessity_score: float,
+    impulse_flag: bool,
+    foreign_flag: bool,
+    flags: list,
+    age_restricted: bool,
+    late_night: bool,
+    hour: int,
+    survival_before: float,
+    survival_after: float,
+    survival_delta: float,
+    days_until_month_end: int,
+    decision: str,
+    reason: str,
+) -> dict:
+    flag_set = set(flags or [])
+    canonical = canonical_category(category)
+    late_food = canonical in {
+        "food_and_dining:food_delivery",
+        "food_and_dining:sweets_snacks",
+        "food_and_dining:alcohol",
+        "entertainment:nightlife",
+    }
+    checks = [
+        {
+            "rule": "R1 Insufficient Funds",
+            "salience": 100,
+            "condition": "transaction_amount > current_balance",
+            "matched": amount > balance,
+            "conclusion": "AVOID",
+        },
+        {
+            "rule": "R1.2 Prohibited Category",
+            "salience": 98,
+            "condition": "ontology flags include illegal / PMLA / corruption",
+            "matched": bool(flag_set.intersection({"illegal", "illegal_in_most_states", "PMLA_trigger", "corruption"})),
+            "conclusion": "AVOID",
+        },
+        {
+            "rule": "R1.5 Essential Expense Guard",
+            "salience": 95,
+            "condition": "necessity_score >= 0.85 and regret_probability < 0.35",
+            "matched": necessity_score >= 0.85 and regret_probability < 0.35,
+            "conclusion": "SPEND",
+        },
+        {
+            "rule": "R2 Critical Survival",
+            "salience": 90,
+            "condition": "survival_after < 3 and regret_probability > 0.50",
+            "matched": survival_after < 3 and regret_probability > 0.50,
+            "conclusion": "AVOID",
+        },
+        {
+            "rule": "R3 Low Survival + Very High Regret",
+            "salience": 85,
+            "condition": "survival_after < 5 and regret_probability > 0.70",
+            "matched": survival_after < 5 and regret_probability > 0.70,
+            "conclusion": "AVOID",
+        },
+        {
+            "rule": "R4 Late-Night Discretionary Spend",
+            "salience": 80,
+            "condition": "survival_after < 7 and late_food_category and late_night",
+            "matched": survival_after < 7 and late_food and late_night,
+            "conclusion": "PAUSE",
+        },
+        {
+            "rule": "R5 Exceeds Daily Target",
+            "salience": 75,
+            "condition": "transaction_amount > daily_target * 1.5",
+            "matched": bool(daily_target and amount > daily_target * 1.5),
+            "conclusion": "PAUSE",
+        },
+        {
+            "rule": "R6 Late-Night Impulse",
+            "salience": 70,
+            "condition": "impulse_flag and hour is late-night",
+            "matched": impulse_flag and (hour >= 22 or hour < 4),
+            "conclusion": "PAUSE",
+        },
+        {
+            "rule": "R7 Foreign Transaction",
+            "salience": 60,
+            "condition": "foreign_flag is true",
+            "matched": foreign_flag,
+            "conclusion": "PAUSE",
+        },
+        {
+            "rule": "R7.5 Sensitive Category",
+            "salience": 58,
+            "condition": "flags include age restricted / sensitive / speculative",
+            "matched": age_restricted or bool(flag_set.intersection({"age_restricted", "sensitive_category", "speculative_asset", "regulatory_watch_india"})),
+            "conclusion": "PAUSE",
+        },
+        {
+            "rule": "R8 Healthy Finances + Low Regret",
+            "salience": 50,
+            "condition": "survival_before > 20 and regret_probability < 0.30",
+            "matched": survival_before > 20 and regret_probability < 0.30,
+            "conclusion": "SPEND",
+        },
+        {
+            "rule": "R9 Default Assessment",
+            "salience": 10,
+            "condition": "no higher-salience rule fired",
+            "matched": True,
+            "conclusion": "SPEND" if survival_after > 10 else "PAUSE",
+        },
+    ]
+    fired_index = next(
+        (idx for idx, check in enumerate(checks) if check["matched"] and check["conclusion"] == decision),
+        len(checks) - 1,
+    )
+    for idx, check in enumerate(checks):
+        check["status"] = "fired" if idx == fired_index else ("checked" if idx < fired_index else "not_reached")
+
+    return {
+        "base_facts": [
+            {"label": "Ontology category", "value": category},
+            {"label": "Transaction amount", "value": round(amount, 2)},
+            {"label": "Regret probability", "value": round(regret_probability, 3)},
+            {"label": "Necessity score", "value": round(necessity_score, 3)},
+            {"label": "Hour", "value": hour},
+            {"label": "Late night", "value": late_night},
+            {"label": "Survival before", "value": round(survival_before, 2)},
+            {"label": "Survival after", "value": round(survival_after, 2)},
+            {"label": "Survival delta", "value": round(survival_delta, 2)},
+            {"label": "Days until month end", "value": days_until_month_end},
+        ],
+        "rules": checks,
+        "fired_rule": checks[fired_index],
+        "decision": decision,
+        "reason": reason,
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -351,11 +551,14 @@ def evaluate_transaction(
     hour                 : local hour 0–23
     payee                : vendor name (used for distress detection)
     """
-    category          = ontology_result.get("category",           "GenericPurchase")
+    category          = canonical_category(ontology_result.get("category", "miscellaneous:uncategorized"))
     regret_prob       = ontology_result.get("regret_probability",  0.35)
     impulse_flag      = ontology_result.get("impulse_flag",        False)
     foreign_flag      = ontology_result.get("foreign_flag",        False)
     necessity_score   = ontology_result.get("necessity_score",     0.50)
+    flags             = ontology_result.get("flags",               [])
+    age_restricted    = ontology_result.get("age_restricted",      False)
+    late_night_flag   = ontology_result.get("late_night_flag",     None)
 
     # Override softening (learning loop)
     regret_prob = apply_override_softening(category, override_counts, regret_prob)
@@ -363,7 +566,7 @@ def evaluate_transaction(
     days_before = float(survival_result.get("survival_days_before", 30.0))
     days_after  = float(survival_result.get("survival_days_after",  25.0))
     delta       = float(survival_result.get("survival_delta",        5.0))
-    late_night  = (hour >= 22 or hour < 4)
+    late_night  = bool(late_night_flag) if late_night_flag is not None else (hour >= 22 or hour < 4)
 
     # Instantiate and run engine
     coach = FinGuardCoach()
@@ -393,6 +596,8 @@ def evaluate_transaction(
         necessity_score=necessity_score,
         impulse_flag=impulse_flag,
         foreign_flag=foreign_flag,
+        flags=flags,
+        age_restricted=age_restricted,
     ))
     coach.run()
 
@@ -426,4 +631,24 @@ def evaluate_transaction(
         opportunity_cost=opp_cost,
         commitment_device=commitment_device,
         confidence=confidence,
+        forward_chain=_build_forward_chain(
+            balance=balance,
+            amount=transaction_amount,
+            daily_target=daily_target,
+            category=category,
+            regret_probability=regret_prob,
+            necessity_score=necessity_score,
+            impulse_flag=impulse_flag,
+            foreign_flag=foreign_flag,
+            flags=flags,
+            age_restricted=age_restricted,
+            late_night=late_night,
+            hour=hour,
+            survival_before=days_before,
+            survival_after=days_after,
+            survival_delta=delta,
+            days_until_month_end=days_until_month_end,
+            decision=decision,
+            reason=reason,
+        ),
     )

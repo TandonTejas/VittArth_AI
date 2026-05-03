@@ -7,25 +7,22 @@ from api.models.schemas import (CategoryBreakdown, CategoryRegretRow,
     DailyPoint, DashboardResponse)
 from api.state.session_store import store
 from modules.ontology_engine import REGRET_PRIORS
-from modules.survival_engine import predict_mathematical
+from modules.survival_engine import estimate_variable_daily_spend, predict_mathematical, variable_expense_statement
 
 router = APIRouter()
 
 def _risk(sd): return "High Risk" if sd<7 else ("Medium Risk" if sd<14 else "Safe")
 
-def _7d_rate(df) -> float:
+def _recent_rate(df) -> float:
     if df is None or df.empty: return 0.0
     try:
-        tmp = df.copy()
-        tmp["Date"]   = pd.to_datetime(tmp["Date"])
-        tmp["Amount"] = pd.to_numeric(tmp["Amount"], errors="coerce").fillna(0)
-        if "TransactionType" in tmp.columns:
-            tmp = tmp[tmp["TransactionType"].str.lower()=="debit"]
+        tmp = variable_expense_statement(df)
         cutoff = pd.Timestamp.today() - pd.Timedelta(days=7)
         recent = tmp[tmp["Date"] >= cutoff]
-        src = recent if not recent.empty else tmp
-        daily = src.groupby(src["Date"].dt.date)["Amount"].sum()
-        return float(daily.mean()) if not daily.empty else 0.0
+        daily = recent.groupby(recent["Date"].dt.date)["Amount"].sum()
+        if len(daily) < 3:
+            return 0.0
+        return float(daily.sum() / 7.0)
     except Exception: return 0.0
 
 @router.get("/dashboard", response_model=DashboardResponse)
@@ -37,10 +34,13 @@ async def dashboard(session_id: str):
     fixed    = session["fixed_expenses"]
     oc       = session.get("override_counts", {})
     df       = session.get("transactions_df")
+    variable_df = session.get("variable_transactions_df")
+    if variable_df is None and df is not None:
+        variable_df = variable_expense_statement(df)
     csv_up   = df is not None
 
-    daily_rate   = _7d_rate(df) or max(target, 1.0)
-    survival     = predict_mathematical(balance, daily_rate, 0.0, fixed)
+    daily_rate   = _recent_rate(variable_df) or estimate_variable_daily_spend(variable_df, fallback=max(target, 1.0)) or max(target, 1.0)
+    survival     = predict_mathematical(balance, daily_rate, 0.0, 0.0)
     risk_tier    = _risk(survival)
     session["risk_tier"] = risk_tier
 
@@ -66,14 +66,12 @@ async def dashboard(session_id: str):
     ma7:     list[DailyPoint] = []
     if csv_up:
         try:
-            tmp = df.copy()
-            tmp["Date"]   = pd.to_datetime(tmp["Date"])
-            tmp["Amount"] = pd.to_numeric(tmp["Amount"], errors="coerce").fillna(0)
-            if "TransactionType" in tmp.columns:
-                tmp = tmp[tmp["TransactionType"].str.lower()=="debit"]
+            tmp = variable_expense_statement(variable_df)
             cutoff = pd.Timestamp.today() - pd.Timedelta(days=30)
             recent = tmp[tmp["Date"] >= cutoff]
-            daily  = recent.groupby(recent["Date"].dt.date)["Amount"].sum().sort_index()
+            # Fall back to all available data if nothing in the last 30 days
+            src = recent if not recent.empty else tmp
+            daily  = src.groupby(src["Date"].dt.date)["Amount"].sum().sort_index()
             for d, a in daily.items(): history.append(DailyPoint(date=str(d), amount=round(float(a),2)))
             if len(daily)>=2:
                 for d, a in daily.rolling(7, min_periods=1).mean().items():
