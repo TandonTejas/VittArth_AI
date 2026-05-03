@@ -93,6 +93,11 @@ app.include_router(transaction.router, prefix="/api")
 
 # ── Serve built React frontend ─────────────────────────────────────────────────
 
-_frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+_frontend_dist = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
+log.info("Checking for frontend at: %s", _frontend_dist)
+
 if os.path.exists(_frontend_dist):
+    log.info("Frontend found! Serving from /")
     app.mount("/", StaticFiles(directory=_frontend_dist, html=True), name="frontend")
+else:
+    log.warning("Frontend NOT found at %s. API-only mode.", _frontend_dist)
