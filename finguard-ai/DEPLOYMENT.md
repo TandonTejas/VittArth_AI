@@ -29,14 +29,14 @@ Ensure `requirements.txt` is in the root directory (one level above `api/`).
 1.  Go to [Railway.app](https://railway.app/) and click **New Project** > **Deploy from GitHub repo**.
 2.  Select your repository.
 3.  **CRITICAL**: Go to **Settings** > **General** > **Root Directory** and set it to `finguard-ai`.
-4.  **Automatic Detection (Nixpacks)**: I have added a `nixpacks.toml` file to your project. Railway will use this to automatically install **both** Node.js and Python without needing Docker.
-5.  **Variables**: Add the following in the **Variables** tab:
+4.  **Automatic Detection (Railpack)**: I have added a `railpack.json` file. Railway's builder specifically requires this to detect that you need **both** Node.js (for the frontend) and Python (for the backend).
+5.  **Variables**: Ensure these are set in the **Variables** tab:
     *   `PORT`: `8000`
     *   `FG_API_HOST`: `0.0.0.0`
     *   `FG_API_PORT`: `8000`
 
 > [!TIP]
-> The `nixpacks.toml` file explicitly tells Railway to install `python311` and `nodejs_20`. This fixes the "npm: not found" error by ensuring the environment is set up correctly before the build starts.
+> The `railpack.json` file forces the builder to provide both `python` and `node` providers, even though your `package.json` is tucked away in the `frontend` folder.
 
 ### 3. Verify
 Railway will provide a URL (e.g., `https://finguard-production.up.railway.app`). Since the backend is configured to serve static files from `frontend/dist`, visiting this URL will load the app.

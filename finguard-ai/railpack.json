@@ -1,0 +1,23 @@
+{
+  "providers": ["python", "node"],
+  "variables": {
+    "PYTHON_VERSION": "3.11",
+    "NODE_VERSION": "20"
+  },
+  "phases": {
+    "install": {
+      "cmds": [
+        "pip install -r requirements.txt",
+        "npm install --prefix frontend"
+      ]
+    },
+    "build": {
+      "cmds": [
+        "npm run build --prefix frontend"
+      ]
+    }
+  },
+  "start": {
+    "cmd": "uvicorn api.main:app --host 0.0.0.0 --port $PORT"
+  }
+}
